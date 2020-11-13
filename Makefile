@@ -8,7 +8,9 @@ PROJECT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 BUCKET = [OPTIONAL] your-bucket-for-syncing-data (do not include 's3://')
 PROFILE = default
 PROJECT_NAME = pytorch_experimentation
-PYTHON_INTERPRETER = python3
+# PyTorch not yet available for 3.9, which is default on Fedora 33;
+# see https://github.com/pytorch/pytorch/issues/45731.
+PYTHON_INTERPRETER = python3.8
 
 ifeq (,$(shell which conda))
 HAS_CONDA=False
@@ -20,10 +22,25 @@ endif
 # COMMANDS                                                                      #
 #################################################################################
 
+## Create venv
+
+setup: .venv requirements
+
+.venv:
+	python3.8 -mvenv .venv
+
 ## Install Python Dependencies
 requirements: test_environment
-	$(PYTHON_INTERPRETER) -m pip install -U pip setuptools wheel
-	$(PYTHON_INTERPRETER) -m pip install -r requirements.txt
+	( \
+		source .venv/bin/activate ; \
+		$(PYTHON_INTERPRETER) -m pip install -U pip setuptools wheel ; \
+		$(PYTHON_INTERPRETER) -m pip install \
+			torch==1.7.0+cpu \
+			torchvision==0.8.1+cpu \
+			torchaudio==0.7.0 \
+			-f https://download.pytorch.org/whl/torch_stable.html ; \
+		$(PYTHON_INTERPRETER) -m pip install -r requirements.txt ; \
+	)
 
 ## Make Dataset
 data: requirements
