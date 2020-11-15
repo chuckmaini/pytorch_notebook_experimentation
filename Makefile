@@ -22,10 +22,10 @@ endif
 # COMMANDS                                                                      #
 #################################################################################
 
-## Create venv
-
+## Initial setup (virtual environment plus dependencies)
 setup: .venv requirements
 
+## Create virtual environment
 .venv:
 	python3.8 -mvenv .venv
 
